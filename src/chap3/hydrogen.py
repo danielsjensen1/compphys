@@ -1,3 +1,4 @@
+from itertools import repeat
 from numpy import abs, argsort, empty, empty_like, exp, pi, sqrt
 from scipy.integrate import simps
 from scipy.linalg import eigh
@@ -6,7 +7,7 @@ from scipy.linalg import eigh
 class Hydrogen(object):
     def __init__(self, exponents):
         self.exponents = exponents
-        self.S = empty((exponents.size, exponents.size))
+        self.S = empty([i for i in repeat(len(exponents), 2)])
         self.T = empty_like(self.S)
         self.A = empty_like(self.S)
         self.fill_arrays()

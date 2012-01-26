@@ -1,6 +1,7 @@
-from numpy import argsort, array, cos, empty, pi, sin
-from scipy.linalg import eigh
-from sympy import diff, integrate, pprint, Symbol
+from numpy import cos, empty, pi, sin
+#from scipy.linalg import eigh
+from chap3.prob03 import part_b as eigh
+from sympy import diff, integrate, Symbol
 
 
 class SquareWell(object):
@@ -8,10 +9,10 @@ class SquareWell(object):
         self._m = Symbol('m'); m = self._m
         self._n = Symbol('n'); n = self._n
         x = Symbol('x')
-        self.Smn = integrate((self.psi(m, x) * self.psi(n, x)).expand(),
+        self.Smn = integrate((self.psi(m, x) * self.psi(n, x)).expand(basic=True),
                              (x, -1, 1))
         self.Hmn = integrate((-self.psi(m, x) *
-                              diff(self.psi(n, x), x, 2)).expand(),
+                              diff(self.psi(n, x), x, 2)).expand(basic=True),
                              (x, -1, 1))
     def getwfs(self):
         'Number of wave functions used in approximation.'
@@ -44,16 +45,20 @@ class SquareWell(object):
         return x**n * (x - 1) * (x + 1)
     
     def variational(self, wfs=5):
-         self.wfs = wfs
-         H = empty([wfs, wfs])
-         S = empty([wfs, wfs])
-         for m in range(0, wfs):
-             for n in range(0, wfs):
-                 H[m, n] = (self.kinetic(m, n)).evalf(15)
-                 S[m, n] = (self.overlap(m, n)).evalf(15)
-         eigvals, eigvecs = eigh(H, S)
-         sortlist = argsort(eigvals)
-         self.eigvals = eigvals[sortlist]
-         print self.eigvals
-         self.eigvecs = eigvecs[sortlist]
-         
+        self.wfs = wfs
+        H = empty([wfs, wfs])
+        S = empty([wfs, wfs])
+        for m in range(0, wfs):
+            for n in range(0, wfs):
+                H[m, n] = (self.kinetic(m, n)).evalf(15)
+                S[m, n] = (self.overlap(m, n)).evalf(15)
+        print('S')
+        print(S)
+        print('H')
+        print(H)
+        self.eigvals, self.eigvecs = eigh(H, S)
+#        sortlist = argsort(eigvals)
+#        self.eigvals = eigvals[sortlist]
+        print self.eigvals
+        print self.eigvecs
+#        self.eigvecs = eigvecs[sortlist]

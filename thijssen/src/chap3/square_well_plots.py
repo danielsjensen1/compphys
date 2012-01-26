@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 sw = SquareWell()
 #print sw.overlap(1, 2)
-sw.variational()
+sw.variational(wfs=16)
 x = linspace(-1, 1, 100)
 
 for i in range(1, 3):#, sw.wfs):

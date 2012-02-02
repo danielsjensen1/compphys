@@ -17,8 +17,6 @@ def part_a(S):
          The positive definite Hermitian (or real symmetric) overlap array.
     """
     eigvals, eigvecs = eigh(S)
-    print('eigvals of S')
-    print(eigvals)
     U = eigvecs
     #  Create the diagonal matrix containing the inverse square root of
     #  the eigenvalues of S.

@@ -1,10 +1,16 @@
 import matplotlib.pyplot as plt
 from numpy import array, linspace
-from chap4.h2plus import H2Plus
+from chap4.h2plus import H2Plus, Nucleus
 
 
+#  Place the atoms one bohr radius apart
+R1 = array([-.5e0, 0e0, 0e0])
+R2 = -R1
+Z = 1e0
 exponents = array([13.00773, 1.962079, 0.444529, 0.1219492])
-hydrogen = H2Plus(exponents)
+nleft = Nucleus(R1, Z, exponents)
+nright = Nucleus(R2, Z, exponents)
+hydrogen = H2Plus((nleft, nright))
 hydrogen.variational()
 def print_energies():
     for n in range(1, len(exponents)+1):

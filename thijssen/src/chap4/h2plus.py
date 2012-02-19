@@ -1,11 +1,22 @@
+from itertools import product
 from numpy import empty, empty_like, exp, pi, sqrt
 from chap3.prob03 import part_b as eigh
 
 
-class H2Plus(object):
-    def __init__(self, exponents):
+class Nucleus(object):
+    def __init__(self, position, charge, exponents):
+        self.position = position
+        self.charge = charge
         self.exponents = exponents
-        self.S = empty((len(exponents),) * 2)
+
+class H2Plus(object):
+    def __init__(self, nuclei, N=1):
+        """Apply the variational principle to the H2+ molecule."""
+        self.nuclei = nuclei
+        self.N = N
+        print(sum(len(nucleus.exponents) for nucleus in nuclei))
+        self.bsize = sum(len(nucleus.exponents) for nucleus in nuclei)
+        self.S = empty((self.bsize,) * 2)
         self.T = empty_like(self.S)
         self.A = empty_like(self.S)
         self.fill_arrays()
@@ -33,6 +44,8 @@ class H2Plus(object):
         return -1e0 / float(2 * n**2)
     
     def fill_arrays(self):
+        for n1, n2 in product(self.nuclei, repeat=2):
+            print(n1.exponents)
         for i, alpha_p in enumerate(self.exponents):
             for j, alpha_q in enumerate(self.exponents):
                 self.S[i, j] = self.overlap(alpha_p, alpha_q)

@@ -6,11 +6,23 @@ from chap3.prob03 import part_b as eigh
 
 class Atom(object):
     def __init__(self, charge, exponents, position):
+        """
+        Store the basis information for each atom
+        
+        `charge` - integer
+            Nuclear charge of the atom.
+        `exponents` - 1D array of floats
+            The exponents determining the width of the Gaussian basis functions.
+        `position` - 1x3 array of floats
+            The location of the atom in Cartesian coordinates.
+        """
         self.charge = charge
         self.exponents = exponents
         self.position = position
+        
 def F0(t):
-    if t < 1e-6:
+    """F0 function described on page 75 of Thijssen equation 4.114."""
+    if t < 1e-6: #  limit as t->0 of F0 is 1e0
         return 1e0
     else:
         thalf = sqrt(t)
@@ -42,6 +54,7 @@ class H2Plus(object):
                 i += 1
     
     def coulomb(self, alpha, beta, fac, R_AB_sqrd, R_P, R_C, Z_C):
+        """Coulomb matrix elements."""
         R_PC = R_P - R_C
         R_PC_sqrd = dot(R_PC, R_PC)
         term1 = -2e0 * pi * Z_C / (alpha + beta)
@@ -50,10 +63,19 @@ class H2Plus(object):
         return term1 * term2 * term3
     
     def approx_eigfunc(self, n, x):
+        """
+        Form eigenfunction `n` using LCAO.
+        
+        Note that currently this only does a plot of the projection of
+        the eigenfunction with y=z=0.
+        
+        `n` - positive integer
+            The eigenfunction index.
+        `x` - 1D array
+            The x grid for the projection of the eigenfunction.
+        """
         C = self.eigvecs[:, n - 1] #  Subtract 1 for 0-based indexing
         f = 0
-        #  Form the eigenfunction using the correct linear combination 
-        #  of the basis functions.
         for i, alpha, R in self.all_orbs():
             r = x - R[0]
             f += C[i] * exp(-alpha * r**2)
@@ -61,9 +83,6 @@ class H2Plus(object):
     
     def approx_energy(self, n):
         return self.eigvals[n - 1] #  Subtract 1 for 0-based indexing 
-    
-    def exact_energy(self, n):
-        return -1e0 / float(2 * n**2)
     
     def fill_arrays(self):
         for (i, alpha, R_A), (j, beta, R_B) in product(self.all_orbs(), 

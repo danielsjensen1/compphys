@@ -1,5 +1,6 @@
+import itertools
 import matplotlib.pyplot as plt
-from numpy import arange, argmin, array, linspace
+from numpy import arange, argmin, array, exp, linspace
 from chap4.h2plus import H2Plus, Atom
 
 
@@ -32,34 +33,62 @@ def pes(darray, exponents):
         The (strictly increasing) array of interatomic distances. 
     """
     n = 1 #  Ground state
-    energies = array([h2plus_calc(d, exponents).approx_energy(n)
-                      for d in darray])
-    nuc_repulsion = array([1e0 / d for d in darray])
-    energies += nuc_repulsion
-    print min(energies)
-    print darray[argmin(energies)]
-    plt.plot(darray, energies, 'r-', label='STO-4G')
+    E = array([h2plus_calc(d, exponents).energy_tot(n) for d in darray])
+#    print min(E)
+#    print darray[argmin(E)]
+    return E
+
+def pes_plots(darray):
+    markers = itertools.cycle(('+', '.', '-', '|', '*', ','))
+    for name, exponents in sorted(H_exponents.items()):
+        energies = pes(darray, exponents)
+        plt.plot(darray, energies, label=name, marker=markers.next(), linewidth=.5)
+        print('Approximation = {0}, Energy = {1:.5e} at d = {2:.5g}'.format(name, min(energies), darray[argmin(energies)]))
     plt.xlabel(r'Interatomic distance $d$')
+    plt.xlim((1e0, 3e0))
     plt.ylabel(r'Ground state energy (Hartrees)')
     plt.legend()
-    plt.title('Potential Energy Curve for $H_{2}^{+}$')
+    plt.title('Potential Energy Curve(s) for $H_{2}^{+}$')
     plt.show()
 #    plt.savefig('prob01Aplot.pdf')
 
-def plot_basis(h2plus):
-    x = linspace(-3, 3, 100)
-    n = 1 #  Ground state
-    approx = h2plus.approx_eigfunc(n, x)
-    plt.plot(x, approx, 'r-', label='STO-4G')
-    plt.xlabel(r'$x$ (where $y=z=0$)')
-    plt.ylabel(r'Ground state wave function')
-    plt.legend()
-    plt.title('Ground-state Electronic Eigenfunction of $H_{2}^{+}$ Molecule')
-    plt.show()
-#    plt.savefig('prob01Aplot.pdf')
+def plot_basis(rarray, norm=True):
+    i = 0
+    fig = plt.figure(figsize=(7, 10))
+    if norm:
+        title = "Basis Functions (norm=1)"
+    else:
+        title = "Basis Functions (max=1)"
+    fig.suptitle(title, fontsize=18)
+    for name, exponents in sorted(H_exponents.items()):
+        i += 1
+        markers = itertools.cycle(('+', '.', '-', '|', '*', ','))
+        for alpha in exponents:
+            if norm:
+                N = (2 * alpha / 4e0) ** (0.75e0) #  Normalization constant
+            else:
+                N = 1e0
+            phi = N * exp(-alpha * rarray ** 2)
+            plt.subplot(3, 2, i)
+            plt.plot(rarray, phi, label='{0:.5g}'.format(alpha), marker=markers.next(), linewidth=.5)
+            plt.legend()
+            plt.xlabel(r'$r$')
+            plt.ylabel(r'Basis function')
+            plt.title(name)
+    fig.subplots_adjust(hspace=0.4, wspace=0.3)
+#    plt.show()
+    if norm:
+        plt.savefig('basis_normed.pdf')
+    else:
+        plt.savefig('basis_maxed.pdf')
 
 if __name__ == '__main__':
-    d = arange(0.5e0, 2.1e0, 0.1)
-    exponents = array([13.00773, 1.962079, 0.444529, 0.1219492])
-    exponents = H_exponents['STO-2G']
-    pes(d, exponents)
+    darray = arange(1e0, 3.1e0, 0.1)
+    pes_plots(darray)
+
+#    exponents = H_exponents['STO-4G']
+#    pes(darray, exponents)
+
+    rarray = linspace(0, 2e0, 50)
+    plot_basis(rarray)
+    plot_basis(rarray, norm=False)

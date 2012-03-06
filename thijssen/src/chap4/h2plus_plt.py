@@ -13,13 +13,13 @@ right = Atom(Z, exponents, R2)
 h2plus = H2Plus((left, right))
 h2plus.variational()
 def print_energies():
-    for n in range(1, h2plus.bsize+1):
-        approx = h2plus.approx_energy(n)
+    for n in range(1, h2plus.bsize + 1):
+        approx = h2plus.energy(n)
         print('E{0} = {1:+.7e}'.format(n, approx))
 def plot_groundstate():
     x = linspace(-3, 3, 100)
     n = 1 #  Ground state
-    approx = h2plus.approx_eigfunc(n, x)
+    approx = h2plus.eigfunc(n, x)
     plt.plot(x, approx, 'x-', label='STO-4G')
     plt.xlabel(r'$x$ (where $y=z=0$)')
     plt.ylabel(r'Ground state wave function')

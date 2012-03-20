@@ -70,20 +70,24 @@ def plot_basis(rarray, norm=True):
                 N = 1e0
             phi = N * exp(-alpha * rarray ** 2)
             plt.subplot(3, 2, i)
-            plt.plot(rarray, phi, label='{0:.5g}'.format(alpha), marker=markers.next(), linewidth=.5)
-            plt.legend()
+            plt.plot(rarray, phi, dashes=(2,2),label='{0:.5g}'.format(alpha), marker=markers.next(), linewidth=.5)
+            leg = plt.legend(numpoints=1)
+            for t in leg.get_texts():
+                t.set_fontsize('small')    # the legend text fontsize
+            for l in leg.get_lines():
+                l.set_linewidth(0.5)  # the legend line width
             plt.xlabel(r'$r$')
             plt.ylabel(r'Basis function')
             plt.title(name)
     fig.subplots_adjust(hspace=0.4, wspace=0.3)
-#    plt.show()
-    if norm:
-        plt.savefig('basis_normed.pdf')
-    else:
-        plt.savefig('basis_maxed.pdf')
+    plt.show()
+#    if norm:
+#        plt.savefig('basis_normed.pdf')
+#    else:
+#        plt.savefig('basis_maxed.pdf')
 
 if __name__ == '__main__':
-    darray = arange(1e0, 3.1e0, 0.1)
+    darray = arange(1e0, 3.1e0, 0.01)
     pes_plots(darray)
 
 #    exponents = H_exponents['STO-4G']

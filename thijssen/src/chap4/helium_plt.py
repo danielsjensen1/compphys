@@ -22,10 +22,10 @@ def plot_groundstate():
     plt.xlabel(r'$x$ (where $y=z=0$)')
     plt.ylabel(r'Ground state wave function')
     plt.legend()
-    plt.title('Ground-state Electronic Eigenfunction of $H_{2}^{+}$ Molecule')
+    plt.title('Ground-state Electronic Eigenfunction of He Atom')
     plt.show()
 #    plt.savefig('prob01Aplot.pdf')
 
 if __name__ == '__main__':
     print_energies()
-#    plot_groundstate()
+    plot_groundstate()

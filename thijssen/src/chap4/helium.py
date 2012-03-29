@@ -2,6 +2,7 @@ from itertools import combinations, product
 from numpy import dot, einsum, empty, empty_like, exp, ones, pi, sqrt
 from scipy.special import erf
 from chap3.prob03 import part_b as eigh
+from scipy.io import savemat
 
 
 class Atom(object):
@@ -75,7 +76,10 @@ class Helium(object):
 
     def energy(self, n):
         """Electronic energy only."""
-        return self.eigvals[n - 1] #  Subtract 1 for 0-based indexing
+        C = self.eigvecs[:, n-1] #  Subtract 1 for 0-based indexing
+        E = (2 * einsum('p,q,pq', C, C, self.H) +
+             einsum('ijkl,i,k,j,l', self.Q, C, C, C, C))
+        return E
 
     def energy_tot(self, n):
         """Total energy ignoring the motion of the nuclei."""
@@ -114,14 +118,13 @@ class Helium(object):
                                             R_P, atom.position, atom.charge)
                                for atom in self.atoms)
         self.H = self.T + self.A
-#        for (p, alpha_p, R_p), (r, alpha_r, R_r), (q, alpha_q, R_q), \
-#        (s, alpha_s, R_s) in product(self.all_orbs(), repeat=4):
         for orbs in product(self.all_orbs(), repeat=4):
             indices, alphas, positions = zip(*orbs)
             self.Q[indices] = self.two_electron(*alphas)
-#            self.Q[p, r, q, s] = self.two_electron(alpha_p, alpha_q, alpha_r, alpha_s)
+#        savemat('static.mat', {'S': self.S, 'T': self.T, 'A': self.A, 'Q': self.Q})
 
     def kinetic(self, alpha, beta, fac, R_AB_sqrd):
+        """The kinetic energy of the electrons."""
         term1 = fac * (3e0 - 2e0 * fac * R_AB_sqrd)
         term2 = (pi / (alpha + beta)) ** (1.5e0)
         term3 = exp(-fac * R_AB_sqrd)
@@ -135,20 +138,21 @@ class Helium(object):
                                  sqrt(alpha_p + alpha_q + alpha_r + alpha_s))
         return Q
 
-    def variational(self, Cguess=False, tol=1e-8, max_iters=10):
-        if Cguess:
+    def variational(self, Cguess=None, tol=1e-10, max_iters=100):
+        if Cguess != None:
             C = Cguess #  We should check that this vector is not zero
         else:
             C = ones(self.bsize)
         #  Normalize the initial guess
         C = 1e0 / sqrt(einsum('p,pq,q', C, self.S, C)) * C
-        #  Form the Fock matrix
         def iteration(C):
+            #  Form the Fock matrix
             F = self.H + einsum('ijkl,j,l', self.Q, C, C)
+#            savemat('F.mat', {'F': F})
             self.eigvals, self.eigvecs = eigh(F, self.S)
             C = self.eigvecs[:, 0]
-            E0 = 2 * einsum('p,q,pq', C, C, self.H) + einsum('ijkl,i,k,j,l', self.Q, C, C, C, C)
-            print E0, einsum('p,pq,q', C, self.S, C), F.shape
+            E0 = self.energy(1)
+            print E0, C
             return E0, C
         E0_old, C_old = iteration(C)
         diff = tol + 1e0
@@ -158,5 +162,3 @@ class Helium(object):
             iters += 1
             diff = abs(E0_new - E0_old)
             E0_old, C_old = E0_new, C_new
-
-#        self.eigvals, self.eigvecs = eigvals, eigvecs

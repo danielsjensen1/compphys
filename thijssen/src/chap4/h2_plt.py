@@ -11,15 +11,17 @@ exponents = array([13.00773, 1.962079, 0.444529, 0.1219492])
 left = Atom(Z, exponents, R1)
 right = Atom(Z, exponents, R2)
 h2 = H2((left, right))
-h2.variational()
+h2.variational(tol=1e-16)
 def print_energies():
     for n in range(1, h2.bsize + 1):
         approx = h2.energy_tot(n)
-        print('E{0} = {1:+.7e}'.format(n, approx))
+        print('E{0} = {1:+.8e}'.format(n, approx))
 def plot_groundstate():
     x = linspace(-3, 3, 100)
     n = 1 #  Ground state
     approx = h2.eigfunc(n, x)
+    if approx[0] < 0e0:
+        approx *= -1e0
     plt.plot(x, approx, 'x-', label='STO-4G')
     plt.xlabel(r'$x$ (where $y=z=0$)')
     plt.ylabel(r'Ground state wave function')
@@ -30,4 +32,4 @@ def plot_groundstate():
 
 if __name__ == '__main__':
     print_energies()
-#    plot_groundstate()
+    plot_groundstate()

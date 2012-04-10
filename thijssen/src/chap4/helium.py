@@ -30,7 +30,7 @@ def F0(t):
         return sqrt(pi) / (2e0 * thalf) * erf(sqrt(t))
 
 class Helium(object):
-    def __init__(self, atoms, N=1):
+    def __init__(self, atoms):
         """Apply the variational principle to the He atom.
         
         `atoms` - list or tuple of class `Atom`
@@ -39,7 +39,6 @@ class Helium(object):
             Total number of electrons.
         """
         self.atoms = atoms
-        self.N = N
         self.bsize = sum(len(atom.exponents) for atom in atoms)
         self.S = empty((self.bsize,) * 2)
         self.T = empty_like(self.S)

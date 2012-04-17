@@ -161,7 +161,7 @@ class H2(object):
             C = self.eigvecs[:, 0]
             E0 = self.energy(1)
 #            print E0
-#            print C
+            print C
             return E0, C
         E0_old, C_old = iteration(C)
         diff = tol + 1e0
@@ -169,5 +169,6 @@ class H2(object):
         while (diff > tol) and (iters < max_iters):
             E0_new, C_new = iteration(C_old)
             iters += 1
+            print iters
             diff = abs(E0_new - E0_old)
             E0_old, C_old = E0_new, C_new

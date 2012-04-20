@@ -1,6 +1,7 @@
 from itertools import product
-from numpy import (abs, array, complex, empty, exp, fill_diagonal, linspace, log, pi, piecewise, 
+from numpy import (abs, array, complex, empty, exp, linspace, log, pi, piecewise, 
                    sin, sqrt)
+from scipy.linalg import det
 import matplotlib.pyplot as plt
 
 
@@ -60,7 +61,7 @@ def plot_exact(a=2e0, Delta=1e0, V0=1.5e0, Vmax=30e0):
     plt.show()
 
 class APW(object):
-    def __init__(self, a=2e0, Delta=1e0, V0=1.5e0, m=range(-10,11)):
+    def __init__(self, a=2e0, Delta=1e0, V0=1.5e0, m=range(-1,2)):
         #  Should I exclude m = 0?
         self.a, self.Delta, self.V0, self.m = (a, Delta, V0, m)
         if a < Delta:
@@ -68,23 +69,49 @@ class APW(object):
         self.bsize = len(m)
     
     def fill_arrays(self, k, E):
-        kappa = sqrt(2 * (E - self.V0))
+        a, V0, Delta = (self.a, self.V0, self.Delta)
+        kappa = sqrt(2 * (E - V0))
         def q(i):
-            return k + 2 * pi * m / self.a
+            return k + 2 * pi * i / a
         def C(i):
-            return sin((kappa + q(m)) * self.Delta / 2e0)
+            return sin((kappa + q(i)) * Delta / 2e0) / sin(kappa * Delta)
         def D(i):
-            return sin((kappa - q(m)) * self.Delta / 2e0)
-        S = empty((self.bsize,)*2)
+            return sin((kappa - q(i)) * Delta / 2e0) / sin(kappa * Delta)
+        S = empty((self.bsize,) * 2)
+        H = empty((self.bsize,) * 2)
         for m, n in product(self.m, repeat=2):
-            qmn = q(m) - q(n)
-            Sext = -2 / qmn * sin(qmn) * self.Delta / 2e0
-            Sint = ((C(m) * C(n) + D(m) * D(n)) * self.Delta + 
-                    (C(m) * D(n) + D(m) * C(n)) * sin(kappa * self.Delta) / kappa)
+            qm, qn = (q(m), q(n))
+            qmn = qm - qn
+            Cm, Cn = (C(m), C(n))
+            Dm, Dn = (D(m), D(n))
+            if m == n:
+                Sext = a - Delta
+            else:
+                Sext = -2e0 / qmn * sin(qmn * Delta / 2e0)
+            term1 = (Cm * Cn + Dm * Dn) * Delta
+            term2 = (Cm * Dn + Dm * Cn) * sin(kappa * Delta) / kappa
+            Sint = term1 + term2
             S[m, n] = Sext + Sint
-        fill_diagonal(S, self.a - self.Delta)
+            Hext = 0.5e0 * qm * qn * Sext
+            Hint = kappa**2 / 2e0 * (term1 - term2) + V0 * Sint
+            H[m, n] = Hext + Hint
+        return H, S
+    
+    def scan_energies(self, k, Earray):
+        vals = []
+        for E in Earray:
+            H, S = self.fill_arrays(k, E)
+            val = det(H - E * S)
+            vals.append(val)
+            print('{0:.5e}, {1:.5g}'.format(E, val))
+        plt.plot(Earray, vals)
+        plt.show()
 
 
 if __name__ == '__main__':
-    plot_potential()
+    apw = APW()
+    k = 0.5e0
+    Earray = linspace(apw.V0+1e-6, 30e0, 1000)
+    apw.scan_energies(k, Earray)
+#    plot_potential()
     plot_exact()

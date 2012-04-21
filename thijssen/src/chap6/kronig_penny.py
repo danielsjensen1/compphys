@@ -1,7 +1,8 @@
 from itertools import product
-from numpy import (abs, array, complex, empty, exp, linspace, log, pi, piecewise, 
-                   sin, sqrt)
+from numpy import (abs, array, complex, diff, empty, exp, linspace, log, pi, 
+                   piecewise, sign, sin, sqrt, where)
 from scipy.linalg import det
+from numpy.linalg import slogdet
 import matplotlib.pyplot as plt
 
 
@@ -61,7 +62,7 @@ def plot_exact(a=2e0, Delta=1e0, V0=1.5e0, Vmax=30e0):
     plt.show()
 
 class APW(object):
-    def __init__(self, a=2e0, Delta=1e0, V0=1.5e0, m=range(-1,2)):
+    def __init__(self, a=2e0, Delta=1e0, V0=1.5e0, m=range(-6,7)):
         #  Should I exclude m = 0?
         self.a, self.Delta, self.V0, self.m = (a, Delta, V0, m)
         if a < Delta:
@@ -94,6 +95,7 @@ class APW(object):
             S[m, n] = Sext + Sint
             Hext = 0.5e0 * qm * qn * Sext
             Hint = kappa**2 / 2e0 * (term1 - term2) + V0 * Sint
+#            Hint = E * Sint
             H[m, n] = Hext + Hint
         return H, S
     
@@ -101,16 +103,19 @@ class APW(object):
         vals = []
         for E in Earray:
             H, S = self.fill_arrays(k, E)
+            print(E, slogdet(H-E*S))
             val = det(H - E * S)
             vals.append(val)
-            print('{0:.5e}, {1:.5g}'.format(E, val))
+#            print('{0:.5e}, {1:.5g}'.format(E, val))
+        vals = array(vals)
+        print('crossings=', Earray[where(diff(sign(vals)))])
         plt.plot(Earray, vals)
         plt.show()
 
 
 if __name__ == '__main__':
     apw = APW()
-    k = 0.5e0
+    k = 0.9e0
     Earray = linspace(apw.V0+1e-6, 30e0, 1000)
     apw.scan_energies(k, Earray)
 #    plot_potential()

@@ -42,6 +42,7 @@ def plot_exact(a=2e0, Delta=1e0, V0=1.5e0, Vmax=30e0):
     T12 = -2e0 * 1e0j * exp(1j * q * a) * (1e0 - kappa**2 / q**2)
     determinant = (abs(T11)**2-abs(T12)**2)*(q/(4*kappa))**2
     print(determinant)
+    mask = where(abs(determinant - 1e0)<1e-2)
 #    print('T11=', T11)
 #    print('T12=', T12)
     A = complex(1e0, 0e0)
@@ -56,7 +57,11 @@ def plot_exact(a=2e0, Delta=1e0, V0=1.5e0, Vmax=30e0):
     k = log(alpha) / (1j * a)
     fig = plt.figure()
     ax1 = fig.add_subplot(1,1,1)
-    ax1.plot(k[0], E, k[1], E)#, k[0])
+#    ax1.plot(k[0], E, k[1], E)
+    ax1.plot(k[0][mask], E[mask], k[1][mask], E[mask])
+    k = linspace(-pi/a, pi/a, len(E[mask]))
+    E = k**2 / 2e0
+    ax1.plot(k, E)
     print(k[0])
     print(pi/a)
     plt.show()
@@ -116,7 +121,7 @@ class APW(object):
 if __name__ == '__main__':
     apw = APW()
     k = 0.9e0
-    Earray = linspace(apw.V0+1e-6, 30e0, 1000)
+    Earray = linspace(apw.V0+1e-6, 30e0, 100)
     apw.scan_energies(k, Earray)
 #    plot_potential()
     plot_exact()

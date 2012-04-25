@@ -1,5 +1,5 @@
 from itertools import product
-from numpy import (abs, array, complex, diff, empty, exp, linspace, log, pi, 
+from numpy import (abs, append, array, complex, diff, empty, exp, gradient, linspace, log, pi, 
                    piecewise, sign, sin, sqrt, where)
 from scipy.linalg import det
 from numpy.linalg import slogdet
@@ -32,17 +32,17 @@ def plot_potential(a=2e0, Delta=1e0, V0=1.5e0, barriers=4, numpts=1000):
     ax1.set_ylim((0, V0+V0/2e0))
     plt.show()
 
-def plot_exact(a=2e0, Delta=1e0, V0=1.5e0, Vmax=30e0):
-    E = linspace(V0+1e-6, Vmax, 1000)
+def plot_exact(a=2e0, Delta=1e0, V0=1.5e0, Vmax=30e0, numpts=1000):
+    E = linspace(V0+1e-6, Vmax, numpts)
     q = sqrt(2e0 * E)
     kappa = sqrt(2e0 * (E - V0))
-    T11 = (exp(1e0j * q * (a - Delta)) *
-           (exp(1e0j * kappa * Delta) * (1e0 + kappa / q)**2) -
-           (exp(-1e0j * kappa * Delta) * (1e0 - kappa / q)**2))
-    T12 = -2e0 * 1e0j * exp(1j * q * a) * (1e0 - kappa**2 / q**2)
-    determinant = (abs(T11)**2-abs(T12)**2)*(q/(4*kappa))**2
-    print(determinant)
-    mask = where(abs(determinant - 1e0)<1e-2)
+    T11 = (exp(1j * q * (a - Delta)) *
+           (exp(1j * kappa * Delta) * (1e0 + kappa / q)**2) -
+           (exp(-1j * kappa * Delta) * (1e0 - kappa / q)**2))
+    T12 = -2e0 * 1j * exp(1j * q * a) * (1e0 - kappa**2 / q**2) * sin(kappa * Delta)
+#    determinant = (abs(T11)**2-abs(T12)**2)*(q/(4*kappa))**2
+#    print(determinant)
+#    mask = where(abs(determinant - 1e0)<1e-2)
 #    print('T11=', T11)
 #    print('T12=', T12)
     A = complex(1e0, 0e0)
@@ -52,19 +52,26 @@ def plot_exact(a=2e0, Delta=1e0, V0=1.5e0, Vmax=30e0):
     beta = array([(-B + sign * sqrt(B**2 - 4 * A * C)) / (2 * A) 
                   for sign in (1e0, -1e0)])
     alpha = q / (4 * kappa) * beta
+    mask = where(abs(alpha[0].real) <= 1e0)
     print(abs(alpha))
 #    print('alpha =', alpha)
     k = log(alpha) / (1j * a)
     fig = plt.figure()
     ax1 = fig.add_subplot(1,1,1)
 #    ax1.plot(k[0], E, k[1], E)
-    ax1.plot(k[0][mask], E[mask], k[1][mask], E[mask])
-    k = linspace(-pi/a, pi/a, len(E[mask]))
-    E = k**2 / 2e0
-    ax1.plot(k, E)
+    kexact, Eexact = (append(k[0][mask], k[1][mask]), append(E[mask], E[mask]))
+#    ax1.plot(k[0][mask], E[mask], 'b.', k[1][mask], E[mask], 'b.')
+    ax1.plot(kexact, Eexact, 'b.')
+    kmax = 2 * pi / a
+    E = linspace(0, Vmax, numpts)
+    kplus = (sqrt(2 * E) - kmax / 2e0) % kmax - kmax/2e0
+    kminus = -kplus
+    ax1.plot(kplus, E, 'r-', kminus, E, 'r-')
+#    ax1.set_xlim((0, kmax/2e0))
     print(k[0])
     print(pi/a)
     plt.show()
+    return kexact, Eexact
 
 class APW(object):
     def __init__(self, a=2e0, Delta=1e0, V0=1.5e0, m=range(-6,7)):
@@ -108,20 +115,42 @@ class APW(object):
         vals = []
         for E in Earray:
             H, S = self.fill_arrays(k, E)
-            print(E, slogdet(H-E*S))
-            val = det(H - E * S)
+#            print(E, slogdet(H-E*S))
+#            val = det(H - E * S)
+            val = slogdet(H-E*S)
             vals.append(val)
 #            print('{0:.5e}, {1:.5g}'.format(E, val))
         vals = array(vals)
-        print('crossings=', Earray[where(diff(sign(vals)))])
-        plt.plot(Earray, vals)
-        plt.show()
+        sign, logdet = vals[:, 0], vals[:, 1]
+        slope = gradient(logdet)
+        crossings = where(diff(sign))
+        energies = Earray[crossings]
+        print slope[crossings]
+        allowed_energies = energies[where(slope[crossings[0]-1] < 0e0)]
+#        allowed_energies = energies[where(slope[crossings-1] < 0e0 and
+#                                          slope[crossings+2] > 0e0)]
+        print(allowed_energies)
+#        print slope[crossings]
+#        for crossing in crossings[0]:
+#            print(slope[crossing:crossing+2], Earray[crossing])
+#        print('crossings=', Earray[crossings])
+#        plt.plot(Earray, vals)
+#        plt.title("Determinant vs. Energy")
+#        plt.xlabel('energy')
+#        plt.ylabel('determinant')
+#        plt.show()
+        return allowed_energies
 
 
 if __name__ == '__main__':
+    kexact, Eexact = plot_exact()
     apw = APW()
-    k = 0.9e0
-    Earray = linspace(apw.V0+1e-6, 30e0, 100)
-    apw.scan_energies(k, Earray)
+    Earray = linspace(apw.V0+1e-6, 30e0, 200)
+#    k = 0.16e0
+#    apw.scan_energies(k, Earray)
+    for k in linspace(0, pi/2e0, 30):
+        energies = apw.scan_energies(k, Earray)
+        plt.plot([k]*len(energies), energies, 'r.')
+    plt.plot(kexact, Eexact, 'g.')
+    plt.show()
 #    plot_potential()
-    plot_exact()

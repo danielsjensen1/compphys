@@ -1,38 +1,12 @@
 from itertools import product
 from numpy import (abs, append, array, complex, diff, empty, exp, gradient, linspace, log, pi, 
-                   piecewise, sign, sin, sqrt, where)
+                   sign, sin, sqrt, where)
 from scipy.linalg import det
 from numpy.linalg import slogdet
 import matplotlib.pyplot as plt
 
 
-def plot_potential(a=2e0, Delta=1e0, V0=1.5e0, barriers=4, numpts=1000):
-    """
-    Plot the Kronig-Penny potential
-    
-    Parameters
-    ----------
-    a : real
-        The direct-space lattice vector
-    Delta : real
-        The width of the potential.  This width must be less than `a`.
-    V0 : real
-        The height of the barrier
-    """
-    x = linspace(0e0, barriers*a, num=numpts)
-    y = piecewise(x, [(x - Delta / 2e0) % a < Delta], [V0])
-    fig = plt.figure()
-    ax1 = fig.add_subplot(1,1,1)
-    ax1.plot(x, y)
-    ax1.set_title('Kronig-Penny Potential')
-    ax1.set_xticks(linspace(a/2e0, a/2e0+(barriers-1)*a, barriers))
-    ax1.set_xticklabels(['${0}a$'.format(i) for i in range(barriers)])
-    ax1.set_yticks([V0])
-    ax1.set_yticklabels(['$V_0$'])
-    ax1.set_ylim((0, V0+V0/2e0))
-    plt.show()
-
-def plot_exact(a=2e0, Delta=1e0, V0=1.5e0, Vmax=30e0, numpts=1000):
+def plot_exact(a=2e0, Delta=1e0, V0=1.5e0, Vmax=30e0, numpts=500):
     E = linspace(V0+1e-6, Vmax, numpts)
     q = sqrt(2e0 * E)
     kappa = sqrt(2e0 * (E - V0))
@@ -42,7 +16,7 @@ def plot_exact(a=2e0, Delta=1e0, V0=1.5e0, Vmax=30e0, numpts=1000):
     T12 = -2e0 * 1j * exp(1j * q * a) * (1e0 - kappa**2 / q**2) * sin(kappa * Delta)
 #    determinant = (abs(T11)**2-abs(T12)**2)*(q/(4*kappa))**2
 #    print(determinant)
-#    mask = where(abs(determinant - 1e0)<1e-2)
+#    mask = where(abs(determinant - 1e0)<1e-1)
 #    print('T11=', T11)
 #    print('T12=', T12)
     A = complex(1e0, 0e0)
@@ -53,23 +27,23 @@ def plot_exact(a=2e0, Delta=1e0, V0=1.5e0, Vmax=30e0, numpts=1000):
                   for sign in (1e0, -1e0)])
     alpha = q / (4 * kappa) * beta
     mask = where(abs(alpha[0].real) <= 1e0)
+#    mask = where(abs(sum(alpha)/2e0) <= 1e0+1e-6)
     print(abs(alpha))
 #    print('alpha =', alpha)
     k = log(alpha) / (1j * a)
     fig = plt.figure()
     ax1 = fig.add_subplot(1,1,1)
-#    ax1.plot(k[0], E, k[1], E)
     kexact, Eexact = (append(k[0][mask], k[1][mask]), append(E[mask], E[mask]))
-#    ax1.plot(k[0][mask], E[mask], 'b.', k[1][mask], E[mask], 'b.')
     ax1.plot(kexact, Eexact, 'b.')
-    kmax = 2 * pi / a
-    E = linspace(0, Vmax, numpts)
-    kplus = (sqrt(2 * E) - kmax / 2e0) % kmax - kmax/2e0
-    kminus = -kplus
-    ax1.plot(kplus, E, 'r-', kminus, E, 'r-')
+    ax1.set_title('Exact Band Structure')
+    ax1.set_xlabel('$k$ point')
+    ax1.set_ylabel('Energy')
+#    kmax = 2 * pi / a
+#    E = linspace(0, Vmax, numpts)
+#    kplus = (sqrt(2 * E) - kmax / 2e0) % kmax - kmax/2e0
+#    kminus = -kplus
+#    ax1.plot(kplus, E, 'r-', kminus, E, 'r-')
 #    ax1.set_xlim((0, kmax/2e0))
-    print(k[0])
-    print(pi/a)
     plt.show()
     return kexact, Eexact
 
@@ -134,23 +108,27 @@ class APW(object):
 #        for crossing in crossings[0]:
 #            print(slope[crossing:crossing+2], Earray[crossing])
 #        print('crossings=', Earray[crossings])
-#        plt.plot(Earray, vals)
-#        plt.title("Determinant vs. Energy")
-#        plt.xlabel('energy')
-#        plt.ylabel('determinant')
-#        plt.show()
+        plt.plot(Earray, sign, label='sign')
+        plt.plot(Earray, logdet, label='log(det)')
+        plt.title("log(Determinant) vs. Energy")
+        plt.xlabel('energy')
+        plt.ylabel('logdet')
+        plt.show()
         return allowed_energies
 
 
 if __name__ == '__main__':
-    kexact, Eexact = plot_exact()
-    apw = APW()
+    a, Delta, V0, Vmax = (2e0, 1e0, 1.5e0, 30e0)
+    kexact, Eexact = plot_exact(a, Delta, V0, Vmax)
+    apw = APW(a, Delta, V0)
     Earray = linspace(apw.V0+1e-6, 30e0, 200)
-#    k = 0.16e0
-#    apw.scan_energies(k, Earray)
-    for k in linspace(0, pi/2e0, 30):
-        energies = apw.scan_energies(k, Earray)
-        plt.plot([k]*len(energies), energies, 'r.')
-    plt.plot(kexact, Eexact, 'g.')
-    plt.show()
-#    plot_potential()
+    k = 0.1e0
+    apw.scan_energies(k, Earray)
+#    plt.plot(kexact, Eexact, 'b.')
+#    for k in linspace(-pi/2e0, pi/2e0, 30):
+#        energies = apw.scan_energies(k, Earray)
+#        plt.plot([k]*len(energies), energies, 'r.')
+#    plt.title('Exact and APW Band Structure')
+#    plt.xlabel('$k$ point')
+#    plt.ylabel('Energy')
+#    plt.show()

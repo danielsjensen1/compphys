@@ -5,8 +5,9 @@ from numpy import linspace
 from chap6.kronig_penny import KronigPenny
 
 
-a, Delta, V0 = (2e0, 1e0, 2e0)
-Emax = 40 * V0
+a, Delta, V0 = (2e0, 1.5e0, 2e0)
+#Emax = 40 * V0
+Emax = 20e0
 kp = KronigPenny(a, Delta, V0)
 
 def plot_apw(kpts=30, Epts=400, m=range(-4,5)):
@@ -24,9 +25,9 @@ def plot_apw(kpts=30, Epts=400, m=range(-4,5)):
     plt.ylabel('Energy')
     plt.legend()
     plt.show()
-    name = 'APW_m{0}_a2_D1_V2.pdf'.format(len(m))
+#    name = 'APW_m{0}_a2_D1_V2.pdf'.format(len(m))
 #    plt.savefig(name)
-    plt.clf()
+#    plt.clf()
 
 def plot_exact(numpts=2000):
     fig = plt.figure()
@@ -36,10 +37,13 @@ def plot_exact(numpts=2000):
     ax1.hlines(y=V0, xmin=-kp.kmax, xmax=kp.kmax, label='$V_0$',
                 linewidth=2.5, color='grey', linestyle='--')
     ax1.set_ylim((0, Emax))
-    ax1.set_title('Exact Band Structure')
+    ax1.set_title('Exact Band Structure ($\Delta={0:.3f}$)'.format(kp.Delta))
     ax1.set_xlabel('$k$ point')
     ax1.set_ylabel('Energy')
     ax1.legend()
+#    name = 'Exact_a2_D{0:.3f}_V2.pdf'.format(kp.Delta)
+#    plt.savefig(name)
+#    plt.clf()
     plt.show()
 
 def plot_logdet(exact=True):
@@ -59,18 +63,9 @@ def plot_logdet(exact=True):
 
 if __name__ == '__main__':
     plot_logdet()
-    plot_exact()
+    for Delta in linspace(0, a, 8)[1:-1]:
+        kp.Delta = Delta
+        plot_exact()
     plot_apw(m=range(-3,3+1))
 #    for M in range(1,7):
 #        plot_apw(m=range(-M,M+1))
-
-#if __name__ == '__main__':
-##    k = 0.1e0
-##    apw.scan_energies(k, Earray)
-#    plt.plot(kexact, Eexact, 'b.')
-#    for k in linspace(-pi/2e0, pi/2e0, 30):
-#        energies = apw.scan_energies(k, Earray)
-#        plt.plot([k]*len(energies), energies, 'r.')
-#    plt.title('Exact and APW Band Structure')
-#    plt.xlabel('$k$ point')
-#    plt.ylabel('Energy')

@@ -54,6 +54,7 @@ def free_electron(a=2e0, Vmax=30e0, numpts=1000):
     plt.show()
 
 def muffin_tin(a1=array([1e0,0e0]), a2=array([0e0,1e0]), grid=(3,3)):
+    """TODO: Create plot of muffin tins."""
     pass
 
 if __name__ == '__main__':

@@ -9,11 +9,14 @@ class SquareWell(object):
         self._m = Symbol('m'); m = self._m
         self._n = Symbol('n'); n = self._n
         x = Symbol('x')
-        self.Smn = integrate((self.psi(m, x) * self.psi(n, x)).expand(basic=True),
+        def Smn(m, n):
+            return integrate((self.psi(m, x) * self.psi(n, x)).expand(basic=True),
                              (x, -1, 1))
-        self.Hmn = integrate((-self.psi(m, x) *
+        def Hmn(m, n):
+            return integrate((-self.psi(m, x) *
                               diff(self.psi(n, x), x, 2)).expand(basic=True),
                              (x, -1, 1))
+        self.Hmn, self.Smn = Hmn, Smn
     def getwfs(self):
         'Number of wave functions used in approximation.'
         return self.__wfs
@@ -36,10 +39,10 @@ class SquareWell(object):
             return sin(kn * x)
     
     def kinetic(self, m, n):
-        return (self.Hmn).subs({self._m: m, self._n: n})
+        return self.Hmn(m, n)
     
     def overlap(self, m, n):
-        return (self.Smn).subs({self._m: m, self._n: n})
+        return self.Smn(m, n)
     
     def psi(self, n, x):
         return x**n * (x - 1) * (x + 1)
@@ -52,10 +55,10 @@ class SquareWell(object):
             for n in range(0, wfs):
                 H[m, n] = (self.kinetic(m, n)).evalf(15)
                 S[m, n] = (self.overlap(m, n)).evalf(15)
-        print('S')
-        print(S)
-        print('H')
-        print(H)
+#         print('S')
+#         print(S)
+#         print('H')
+#         print(H)
         self.eigvals, self.eigvecs = eigh(H, S)
 #        sortlist = argsort(eigvals)
 #        self.eigvals = eigvals[sortlist]

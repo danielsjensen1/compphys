@@ -21,7 +21,7 @@ def partB(numpts=2000):
 #    t = linspace(0, 10*T, numpts)
     sol = duffing(t, x0=[0.5e0, 1e0], **kwargs)
     x, v = (sol[:, 0], sol[:, 1])
-    plt.plot(x, kwargs['m']*v, color='black', marker=',', linestyle='...')
+    plt.plot(x, kwargs['m']*v, color='black', marker=',', linestyle='None')
     plt.xlabel('$x$')
     plt.ylabel('$p$')
     plt.title('Strange Attractor for Duffing Oscillator')
@@ -50,7 +50,7 @@ def partD(numpts=6400):
         return array(inside, dtype='bool')
     fig = plt.figure()
     ax = fig.add_subplot(111, aspect='equal')
-    attractor, = ax.plot(x, p, color='black', marker=',', linestyle='...')
+    attractor, = ax.plot(x, p, color='black', marker=',', linestyle='None')
     divisions = 2**4
     occ = occupied(divisions)
 #    print(occ)
@@ -88,6 +88,6 @@ def partD(numpts=6400):
 
 
 if __name__ == '__main__':
-#    partA()
-#    partB()
+    partA()
+    partB()
     partD()
